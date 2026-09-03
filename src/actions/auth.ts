@@ -147,25 +147,12 @@ export async function requestPasswordResetAction(
     console.log("[password-reset]", link);
   }
 
-  if (process.env.RESEND_API_KEY) {
-    try {
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: process.env.EMAIL_FROM ?? "Splitwise <onboarding@resend.dev>",
-          to: email,
-          subject: "Reset your password",
-          text: `Reset your password: ${link}`,
-        }),
-      });
-    } catch (err) {
-      console.error("[password-reset] email failed", err);
-    }
-  }
+  const { sendEmail } = await import("@/lib/email");
+  await sendEmail({
+    to: email,
+    subject: "Reset your password",
+    text: `Reset your password: ${link}`,
+  });
 
   return { success: generic };
 }

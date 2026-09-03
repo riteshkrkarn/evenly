@@ -7,6 +7,7 @@ const statements = [
     password_hash TEXT NOT NULL,
     name TEXT NOT NULL,
     avatar_id INTEGER NOT NULL DEFAULT 1,
+    email_reminders_enabled INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
   )`,
@@ -236,6 +237,7 @@ export async function migrate() {
     `ALTER TABLE friendships ADD COLUMN status TEXT NOT NULL DEFAULT 'ACCEPTED'`,
     `ALTER TABLE friendships ADD COLUMN requested_by TEXT`,
     `ALTER TABLE group_members ADD COLUMN role TEXT NOT NULL DEFAULT 'MEMBER'`,
+    `ALTER TABLE users ADD COLUMN email_reminders_enabled INTEGER NOT NULL DEFAULT 0`,
   ]) {
     try {
       await client.execute(alter);

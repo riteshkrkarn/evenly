@@ -14,6 +14,11 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),
   avatarId: integer("avatar_id").notNull().default(1),
+  emailRemindersEnabled: integer("email_reminders_enabled", {
+    mode: "boolean",
+  })
+    .notNull()
+    .default(false),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .default(sql`(unixepoch() * 1000)`),

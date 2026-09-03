@@ -15,10 +15,12 @@ export default function ProfileClient({
   name,
   email,
   avatarId,
+  emailRemindersEnabled,
 }: {
   name: string;
   email: string;
   avatarId: number;
+  emailRemindersEnabled: boolean;
 }) {
   const [avatar, setAvatar] = useState(avatarId);
   const [state, action, pending] = useActionState(updateProfileAction, initial);
@@ -34,6 +36,21 @@ export default function ProfileClient({
             <Input id="name" name="name" defaultValue={name} required />
           </div>
           <AvatarPicker value={avatar} onChange={setAvatar} />
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="emailRemindersEnabled"
+              defaultChecked={emailRemindersEnabled}
+              className="mt-1"
+            />
+            <span>
+              <span className="font-medium text-ink">Monthly email reminder</span>
+              <span className="mt-0.5 block text-muted">
+                Once a month, email me a digest of amounts I still owe across
+                groups.
+              </span>
+            </span>
+          </label>
           {state.error && (
             <p className="text-sm text-danger" role="alert">
               {state.error}

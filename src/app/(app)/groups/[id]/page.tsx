@@ -237,6 +237,11 @@ export default async function GroupPage({
             <Button className="w-full sm:w-auto">Add expense</Button>
           </Link>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <Link href={`/groups/${id}/summary`} className="min-w-0">
+              <Button variant="outline" className="w-full sm:w-auto">
+                Monthly summary
+              </Button>
+            </Link>
             <Link href={`/groups/${id}/settings`} className="min-w-0">
               <Button variant="outline" className="w-full sm:w-auto">
                 Settings

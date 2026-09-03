@@ -18,14 +18,17 @@ export async function updateProfileAction(
   const avatarId = Number(formData.get("avatarId") ?? 1);
   if (!name) return { error: "Name is required." };
 
-  await db.update(users)
+  const emailRemindersEnabled = formData.get("emailRemindersEnabled") === "on";
+
+  await db
+    .update(users)
     .set({
       name,
       avatarId: Math.min(5, Math.max(1, avatarId || 1)),
+      emailRemindersEnabled,
       updatedAt: new Date(),
     })
-    .where(eq(users.id, session.user.id))
-    ;
+    .where(eq(users.id, session.user.id));
 
   revalidatePath("/profile");
   revalidatePath("/dashboard");
