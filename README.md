@@ -1,63 +1,50 @@
 # Evenly
 
-A small-group expense splitter for roommates, friends, and trips. Anyone in a group should be able to answer **who owes what** in a few seconds — without arguing about the math.
+**Split shared costs. Trust the numbers.**
 
-Web only. Groups are capped at **5 members**. Settlements are recorded in-app (A paid B ₹X). There is no payment gateway.
+Evenly is a web app for small groups — roommates, classmates, friends, flatmates — to track shared expenses and settle up without arguing about the math. Open it on your phone between plans, log a bill, and see **who owes whom** in seconds.
+
+Built for privacy and accuracy: quiet ledgers, clear balances, no payment gateway noise.
+
+---
+
+## Who it’s for
+
+Young adults sharing costs in informal groups of up to **5 people**. No fixed occasion required — everyday bills, trips, groceries, rent splits.
+
+## What you can do
+
+- **Groups** — Create a group, invite people by email, accept or decline in-app
+- **Expenses** — Equal, exact, percentage, or shares splits; categories, notes, comments
+- **Balances** — See what you owe and what’s owed to you, pair by pair
+- **Settle** — Record that A paid B (full or partial); history on Transfers
+- **Friends** — Direct expenses between two people outside a group
+- **Stay in sync** — Notifications, activity feed, monthly summaries, optional amount-due email
+- **Insights** — Spend by category and month across your groups
+
+Settlements are recorded in the app only. Evenly does not move money.
+
+## Product principles
+
+1. **Numbers first** — Balances and amounts lead every relevant screen  
+2. **Earn trust through clarity** — Obvious owe / owed / settled states  
+3. **Private by default** — Group data stays with the group; no performative chrome  
+4. **Mobile-ready** — One-handed use between conversations  
+
+More detail: [`PRODUCT.md`](PRODUCT.md) · design system: [`DESIGN.md`](DESIGN.md)
+
+---
 
 ## Stack
 
-- **Next.js 16** (App Router) + TypeScript + Tailwind v4
-- **Auth.js** (email + password, JWT sessions)
-- **Drizzle ORM** + **libSQL**
-  - Local: SQLite file at `data/evenly.db`
-  - Production (Vercel): **Turso**
-- Dark / light theme, DM Sans, INR-first money formatting
+| Layer | Choice |
+|---|---|
+| App | Next.js 16 (App Router), TypeScript, Tailwind CSS v4 |
+| Auth | Auth.js — email + password, JWT sessions |
+| Data | Drizzle ORM + libSQL (local SQLite / Turso in production) |
+| UI | Archivo + Azeret Mono, light & dark themes, INR-first money |
 
-## Features
-
-### Auth & profiles
-- Register / log in / password reset
-- Show-password toggle on auth forms
-- 5 preset avatars (no uploads)
-- Theme toggle (light / dark)
-
-### Groups
-- Create groups (max 5 people)
-- Invite by email of a registered user → in-app Accept / Reject
-- Inviter is notified on accept or decline
-- Group settings, default split, debt simplification
-- Soft-delete / restore groups
-
-### Expenses
-- Equal, exact, percentage, and shares splits
-- Single or multi-payer
-- Categories, notes, comments, edit history
-- **Edit** only for the person who added the bill
-- Filters: search, category, **added by**, **paid by**
-- Each row shows who added it and who paid
-- Soft-delete / restore expenses
-- CSV / JSON export
-- Optional receipt notes / itemization (files do not persist on Vercel)
-
-### Balances & settlements
-- Pairwise balances: only **your** pairs (you ↔ each member)
-- **You owe** and **You’re owed** both shown when they apply
-- **Pay part** on a pair you owe — e.g. ₹100 of ₹200 leaves ₹100
-- You cannot record a payment for someone else’s debt
-- **Transfers** page: every payment you sent, and payments sent to you
-- Group page lists your transfers in that group
-
-### Friends, activity, insights
-- Add friends by email, accept / reject requests
-- Direct expenses between two friends
-- In-app notifications (mark read)
-- Activity feed
-- Charts (category, month, cross-group)
-- Payment reminders (“nudge people who owe”)
-- Per-group **monthly summary** (spend, your share, categories, current nets)
-- Opt-in **monthly amount-due email** (Resend + Vercel Cron on the 1st)
-
-## Local setup
+## Local development
 
 ```bash
 npm install
@@ -68,7 +55,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Without Turso env vars, the app uses `data/evenly.db` (gitignored).
+Without Turso env vars, data lives in `data/evenly.db` (gitignored).
 
 ### Demo accounts
 
@@ -77,7 +64,9 @@ Without Turso env vars, the app uses `data/evenly.db` (gitignored).
 | `rahul@demo.com` | `password123` |
 | `priya@demo.com` | `password123` |
 
-Optional `.env.local`:
+### Environment
+
+Create `.env.local` as needed:
 
 ```
 AUTH_SECRET=a-long-random-string
@@ -87,50 +76,50 @@ EMAIL_FROM=Evenly <onboarding@resend.dev>
 CRON_SECRET=a-long-random-string
 ```
 
-To talk to the **same** Turso database as production, also set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`.
+To use the same database as production, also set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`.
 
-Monthly amount-due emails need `RESEND_API_KEY` (and a verified `EMAIL_FROM` in production). Vercel Cron hits `/api/cron/monthly-reminders` on the 1st with `Authorization: Bearer $CRON_SECRET`.
+Monthly amount-due emails need `RESEND_API_KEY` and a verified `EMAIL_FROM`. Vercel Cron calls `/api/cron/monthly-reminders` on the 1st with `Authorization: Bearer $CRON_SECRET`.
 
-## Deploy on Vercel + Turso
+## Production (Vercel + Turso)
 
-Local SQLite cannot persist on Vercel. Use Turso.
+Local SQLite does not persist on Vercel — use [Turso](https://turso.tech).
 
-1. Create a database at [turso.tech](https://turso.tech) and copy the URL + token.
-2. Import this repo into Vercel.
-3. Set environment variables (Production **and** Preview), then deploy:
+1. Create a Turso database; copy URL and token  
+2. Import this repo into Vercel  
+3. Set env vars for **Production** and **Preview**, then deploy:
 
-| Name | Value |
+| Variable | Purpose |
 |---|---|
 | `TURSO_DATABASE_URL` | `libsql://….turso.io` |
-| `TURSO_AUTH_TOKEN` | Turso token |
-| `AUTH_SECRET` | Random string (`openssl rand -base64 32`) |
+| `TURSO_AUTH_TOKEN` | Turso auth token |
+| `AUTH_SECRET` | `openssl rand -base64 32` |
 | `AUTH_URL` | `https://your-app.vercel.app` |
 | `APP_URL` | Same as `AUTH_URL` |
-| `RESEND_API_KEY` | Resend API key (optional until you use email) |
+| `RESEND_API_KEY` | Optional until email is enabled |
 | `EMAIL_FROM` | e.g. `Evenly <onboarding@resend.dev>` |
-| `CRON_SECRET` | Random string for monthly reminder cron |
+| `CRON_SECRET` | Secret for the monthly reminder cron |
 
-4. After the first deploy, set `AUTH_URL` / `APP_URL` if they were blank and **redeploy**.
+4. If `AUTH_URL` / `APP_URL` were empty on first deploy, set them and **redeploy**
 
-Schema is created on first request (`migrate()`). Optional: run `npm run db:migrate` locally with the Turso env vars.
+Schema migrates on first request. Optionally run `npm run db:migrate` locally against Turso.
 
-**Deploying new code:** push to `main` (or **Create Deployment** from that commit). Vercel’s **Redeploy** on an old deployment rebuilds that old commit, not the latest.
+Prefer Vercel Functions region **`bom1`** (Mumbai) when the Turso DB is in `aws-ap-south-1`.
 
-**Speed:** set the Vercel Functions region to **`bom1`** (Mumbai) if the Turso DB is in `aws-ap-south-1`.
+Push to `main` (or deploy that commit) for new releases. Redeploying an old Vercel deployment rebuilds that old commit, not latest `main`.
 
 ## Scripts
 
-| Script | Purpose |
+| Command | Purpose |
 |---|---|
-| `npm run dev` | Dev server |
-| `npm run db:migrate` | Create / update schema |
-| `npm run db:seed` | Demo users + group |
-| `npm test` | Balance / split unit tests |
-| `npm run lint` | ESLint |
+| `npm run dev` | Development server |
 | `npm run build` | Production build |
+| `npm run db:migrate` | Apply schema |
+| `npm run db:seed` | Seed demo users and group |
+| `npm test` | Unit tests (balances / splits) |
+| `npm run lint` | ESLint |
 
-## Project notes
+## Notes
 
-- `data/` and `.env*` are gitignored — local DB and secrets stay off git
-- Receipt files under `public/uploads` are ephemeral on Vercel
-- Product / design intent: [`PRODUCT.md`](PRODUCT.md), [`DESIGN.md`](DESIGN.md)
+- `data/` and `.env*` are gitignored  
+- Receipt uploads under `public/uploads` are ephemeral on Vercel  
+- Groups are capped at **5** members by design
