@@ -2,10 +2,9 @@
 
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Check, Moon, RefreshCw, Sun } from "lucide-react";
+import { Bell, Check, RefreshCw } from "lucide-react";
 import { markNotificationReadAction } from "@/actions/notifications";
 import { NotificationActions } from "@/components/notification-actions";
-import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +30,6 @@ export function NavbarControls({
   pendingFriendIds: string[];
 }) {
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
@@ -196,23 +194,6 @@ export function NavbarControls({
           </div>
         )}
       </div>
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={
-          theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-        }
-        title={theme === "dark" ? "Light mode" : "Dark mode"}
-        onClick={toggleTheme}
-      >
-        {theme === "dark" ? (
-          <Sun className="h-4 w-4" />
-        ) : (
-          <Moon className="h-4 w-4" />
-        )}
-      </Button>
     </div>
   );
 }

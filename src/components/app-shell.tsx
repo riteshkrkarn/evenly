@@ -5,6 +5,7 @@ import { logoutAction } from "@/actions/auth";
 import { AvatarDisplay } from "@/components/avatar-display";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { NavbarControls } from "@/components/navbar-controls";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   getNotificationsForUser,
@@ -96,6 +97,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-0.5 sm:gap-1.5">
+            <ThemeToggle />
             {session?.user && (
               <>
                 <Suspense fallback={<NavbarSkeleton />}>

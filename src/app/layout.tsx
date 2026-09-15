@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Azeret_Mono } from "next/font/google";
+import { PublicThemeToggle } from "@/components/public-theme-toggle";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -58,7 +59,10 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="min-h-full font-sans antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <PublicThemeToggle />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
