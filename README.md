@@ -41,48 +41,10 @@ More detail: [`PRODUCT.md`](PRODUCT.md) · design system: [`DESIGN.md`](DESIGN.m
 |---|---|
 | App | Next.js 16 (App Router), TypeScript, Tailwind CSS v4 |
 | Auth | Auth.js — email + password, JWT sessions |
-| Data | Drizzle ORM + libSQL (local SQLite / Turso in production) |
+| Data | Drizzle ORM + libSQL (Turso) |
 | UI | Archivo + Azeret Mono, light & dark themes, INR-first money |
 
-## Local development
-
-```bash
-npm install
-npm run db:migrate
-npm run db:seed
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-Without Turso env vars, data lives in `data/evenly.db` (gitignored).
-
-### Demo accounts
-
-| Email | Password |
-|---|---|
-| `rahul@demo.com` | `password123` |
-| `priya@demo.com` | `password123` |
-
-### Environment
-
-Create `.env.local` as needed:
-
-```
-AUTH_SECRET=a-long-random-string
-APP_URL=http://localhost:3000
-RESEND_API_KEY=
-EMAIL_FROM=Evenly <onboarding@resend.dev>
-CRON_SECRET=a-long-random-string
-```
-
-To use the same database as production, also set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`.
-
-Monthly amount-due emails need `RESEND_API_KEY` and a verified `EMAIL_FROM`. Vercel Cron calls `/api/cron/monthly-reminders` on the 1st with `Authorization: Bearer $CRON_SECRET`.
-
 ## Production (Vercel + Turso)
-
-Local SQLite does not persist on Vercel — use [Turso](https://turso.tech).
 
 1. Create a Turso database; copy URL and token  
 2. Import this repo into Vercel  
@@ -101,25 +63,10 @@ Local SQLite does not persist on Vercel — use [Turso](https://turso.tech).
 
 4. If `AUTH_URL` / `APP_URL` were empty on first deploy, set them and **redeploy**
 
-Schema migrates on first request. Optionally run `npm run db:migrate` locally against Turso.
+Schema migrates on first request.
 
 Prefer Vercel Functions region **`bom1`** (Mumbai) when the Turso DB is in `aws-ap-south-1`.
 
 Push to `main` (or deploy that commit) for new releases. Redeploying an old Vercel deployment rebuilds that old commit, not latest `main`.
 
-## Scripts
-
-| Command | Purpose |
-|---|---|
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
-| `npm run db:migrate` | Apply schema |
-| `npm run db:seed` | Seed demo users and group |
-| `npm test` | Unit tests (balances / splits) |
-| `npm run lint` | ESLint |
-
-## Notes
-
-- `data/` and `.env*` are gitignored  
-- Receipt uploads under `public/uploads` are ephemeral on Vercel  
-- Groups are capped at **5** members by design
+Monthly amount-due emails need `RESEND_API_KEY` and a verified `EMAIL_FROM`. Vercel Cron calls `/api/cron/monthly-reminders` on the 1st with `Authorization: Bearer $CRON_SECRET`.
