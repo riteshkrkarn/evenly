@@ -3,7 +3,11 @@
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, Check, RefreshCw } from "lucide-react";
-import { markNotificationReadAction } from "@/actions/notifications";
+import {
+  clearAllNotificationsAction,
+  markAllNotificationsReadAction,
+  markNotificationReadAction,
+} from "@/actions/notifications";
 import { NotificationActions } from "@/components/notification-actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -38,8 +42,15 @@ export function NavbarControls({
   const panelId = useId();
 
   useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (!panelRef.current?.contains(e.target as Node)) setOpen(false);
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as Node;
+      if (
+        panelRef.current?.contains(target) ||
+        buttonRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -48,11 +59,11 @@ export function NavbarControls({
       }
     }
     if (open) {
-      document.addEventListener("mousedown", onClick);
+      document.addEventListener("pointerdown", onPointerDown);
       document.addEventListener("keydown", onKey);
     }
     return () => {
-      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
@@ -75,7 +86,6 @@ export function NavbarControls({
       }
     }
     document.addEventListener("keydown", onTab);
-    first?.focus();
     return () => document.removeEventListener("keydown", onTab);
   }, [open]);
 
@@ -96,6 +106,24 @@ export function NavbarControls({
     setDismissedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
     startTransition(async () => {
       await markNotificationReadAction(id);
+      router.refresh();
+    });
+  }
+
+  function readAll() {
+    const ids = visible.map((n) => n.id);
+    setDismissedIds((prev) => [...new Set([...prev, ...ids])]);
+    startTransition(async () => {
+      await markAllNotificationsReadAction();
+      router.refresh();
+    });
+  }
+
+  function clearAll() {
+    const ids = visible.map((n) => n.id);
+    setDismissedIds((prev) => [...new Set([...prev, ...ids])]);
+    startTransition(async () => {
+      await clearAllNotificationsAction();
       router.refresh();
     });
   }
@@ -142,12 +170,32 @@ export function NavbarControls({
             role="dialog"
             aria-modal="true"
             aria-label="Notifications"
-            className="fixed inset-x-3 top-[calc(env(safe-area-inset-top)+3.5rem)] z-50 max-h-[min(28rem,calc(100dvh-8rem))] overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_12px_40px_var(--shadow)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-none sm:w-[min(100vw-2rem,22rem)]"
+            className="fixed inset-x-3 top-[calc(env(safe-area-inset-top)+3.5rem)] z-50 flex max-h-[min(28rem,calc(100dvh-8rem))] flex-col overflow-hidden rounded-sm border border-border bg-surface shadow-[0_12px_40px_var(--shadow)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:max-h-[min(28rem,70vh)] sm:w-[min(100vw-2rem,22rem)]"
           >
-            <div className="border-b border-border px-4 py-3">
+            <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
               <p className="text-sm font-semibold">Notifications</p>
+              {visible.length > 0 ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    className="rounded-sm px-2 py-1 text-xs font-semibold text-ink underline-offset-2 hover:underline disabled:opacity-45"
+                    disabled={pending}
+                    onClick={readAll}
+                  >
+                    Read all
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-sm px-2 py-1 text-xs font-semibold text-primary underline-offset-2 hover:underline disabled:opacity-45"
+                    disabled={pending}
+                    onClick={clearAll}
+                  >
+                    Clear all
+                  </button>
+                </div>
+              ) : null}
             </div>
-            <ul className="max-h-80 overflow-y-auto">
+            <ul className="min-h-0 flex-1 overflow-y-auto">
               {visible.length === 0 && (
                 <li className="px-4 py-8 text-center text-sm text-muted">
                   You’re all caught up
@@ -182,7 +230,7 @@ export function NavbarControls({
                         title="Mark as read"
                         aria-label="Mark as read"
                         onClick={() => dismissNotification(n.id)}
-                        className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-primary transition-colors duration-150 hover:bg-bg"
+                        className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-sm text-primary transition-colors duration-150 hover:bg-bg"
                       >
                         <Check className="h-4 w-4" strokeWidth={2.5} />
                       </button>

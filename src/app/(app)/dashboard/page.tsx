@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, EmptyState, PageHeader } from "@/components/ui/card";
 import { NotificationList } from "@/components/notification-list";
 import { PaginationNav } from "@/components/pagination-nav";
-import { markAllNotificationsReadAction } from "@/actions/notifications";
 import { db } from "@/db";
 import { friendships, groupMembers, groups, notifications } from "@/db/schema";
 import {
@@ -204,13 +203,8 @@ export default async function DashboardPage({
 
       <section className="grid gap-6 md:grid-cols-2">
         <Card>
-          <div className="mb-4 flex items-center justify-between gap-2">
+          <div className="mb-4">
             <h2 className="font-semibold">Notifications</h2>
-            <form action={markAllNotificationsReadAction}>
-              <Button type="submit" variant="ghost" size="sm">
-                Clear all
-              </Button>
-            </form>
           </div>
           <NotificationList
             notifications={notes.map((n) => ({

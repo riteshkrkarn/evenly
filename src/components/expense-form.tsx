@@ -8,9 +8,10 @@ import {
 import type { ActionResult } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Card, Select } from "@/components/ui/card";
+import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CATEGORIES, CURRENCIES } from "@/lib/utils";
+import { CATEGORIES, CURRENCIES, formatMoney, roundMoney } from "@/lib/utils";
 
 const initial: ActionResult = {};
 
@@ -34,6 +35,11 @@ export type ExpenseFormInitial = {
     percent: number | null;
   }[];
 };
+
+function numOrZero(raw: string) {
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
 
 export function ExpenseForm({
   groupId,
@@ -72,21 +78,153 @@ export function ExpenseForm({
   const [selected, setSelected] = useState<string[]>(
     initialExpense?.participantIds ?? members.map((m) => m.userId)
   );
+  const [amount, setAmount] = useState(
+    initialExpense ? String(initialExpense.amount) : ""
+  );
+  const [currency, setCurrency] = useState(
+    initialExpense?.currency ?? defaultCurrency
+  );
+
+  const splitById = Object.fromEntries(
+    (initialExpense?.splits ?? []).map((s) => [s.userId, s])
+  );
+  const payerAmountById = Object.fromEntries(
+    (initialExpense?.payers ?? []).map((p) => [p.userId, p.amount])
+  );
+
+  const [exactById, setExactById] = useState<Record<string, string>>(() => {
+    const next: Record<string, string> = {};
+    for (const uid of initialExpense?.participantIds ??
+      members.map((m) => m.userId)) {
+      const existing = splitById[uid]?.amount;
+      const fallback = defaultSplitValues[uid];
+      if (existing != null) next[uid] = String(existing);
+      else if (fallback != null) next[uid] = String(fallback);
+      else next[uid] = "";
+    }
+    return next;
+  });
+  const [percentById, setPercentById] = useState<Record<string, string>>(() => {
+    const next: Record<string, string> = {};
+    for (const uid of initialExpense?.participantIds ??
+      members.map((m) => m.userId)) {
+      const existing = splitById[uid]?.percent;
+      const fallback = defaultSplitValues[uid];
+      if (existing != null) next[uid] = String(existing);
+      else if (fallback != null) next[uid] = String(fallback);
+      else next[uid] = "";
+    }
+    return next;
+  });
+  const [sharesById, setSharesById] = useState<Record<string, string>>(() => {
+    const next: Record<string, string> = {};
+    for (const uid of initialExpense?.participantIds ??
+      members.map((m) => m.userId)) {
+      const existing = splitById[uid]?.shares;
+      const fallback = defaultSplitValues[uid];
+      if (existing != null) next[uid] = String(existing);
+      else if (fallback != null) next[uid] = String(fallback);
+      else next[uid] = "";
+    }
+    return next;
+  });
+  const [payerById, setPayerById] = useState<Record<string, string>>(() => {
+    const next: Record<string, string> = {};
+    for (const uid of members.map((m) => m.userId)) {
+      next[uid] = String(payerAmountById[uid] ?? 0);
+    }
+    return next;
+  });
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const dateValue = initialExpense
     ? new Date(initialExpense.date).toISOString().slice(0, 10)
     : today;
-  const defaultPayerId =
-    initialExpense?.payers.length === 1
+  const recordedPayerId =
+    editing && initialExpense?.payers.length === 1
       ? initialExpense.payers[0].userId
       : currentUserId;
-  const payerAmountById = Object.fromEntries(
-    (initialExpense?.payers ?? []).map((p) => [p.userId, p.amount])
-  );
-  const splitById = Object.fromEntries(
-    (initialExpense?.splits ?? []).map((s) => [s.userId, s])
-  );
+  const recordedPayerName =
+    members.find((m) => m.userId === recordedPayerId)?.name ?? "you";
+
+  const totalAmount = roundMoney(numOrZero(amount));
+
+  const splitSum = useMemo(() => {
+    if (splitMode === "EXACT") {
+      return roundMoney(
+        selected.reduce((sum, uid) => sum + numOrZero(exactById[uid] ?? ""), 0)
+      );
+    }
+    if (splitMode === "PERCENTAGE") {
+      return roundMoney(
+        selected.reduce(
+          (sum, uid) => sum + numOrZero(percentById[uid] ?? ""),
+          0
+        )
+      );
+    }
+    return null;
+  }, [splitMode, selected, exactById, percentById]);
+
+  const payerSum = useMemo(() => {
+    if (!multiPayer) return null;
+    return roundMoney(
+      selected.reduce((sum, uid) => sum + numOrZero(payerById[uid] ?? ""), 0)
+    );
+  }, [multiPayer, selected, payerById]);
+
+  const clientError = useMemo(() => {
+    if (!(totalAmount > 0)) return null;
+
+    if (splitMode === "EXACT" && splitSum != null) {
+      const diff = roundMoney(totalAmount - splitSum);
+      if (Math.abs(diff) > 0.01) {
+        return `Shares add up to ${formatMoney(splitSum, currency)}, but the expense is ${formatMoney(totalAmount, currency)}. ${
+          diff > 0
+            ? `Still short ${formatMoney(diff, currency)}.`
+            : `Over by ${formatMoney(Math.abs(diff), currency)}.`
+        }`;
+      }
+    }
+
+    if (splitMode === "PERCENTAGE" && splitSum != null) {
+      const diff = roundMoney(100 - splitSum);
+      if (Math.abs(diff) > 0.01) {
+        return `Percentages add up to ${splitSum}%. They need to total 100% (${
+          diff > 0 ? `short ${diff}%` : `over by ${Math.abs(diff)}%`
+        }).`;
+      }
+    }
+
+    if (multiPayer && payerSum != null) {
+      const diff = roundMoney(totalAmount - payerSum);
+      if (Math.abs(diff) > 0.01) {
+        return `Amounts paid add up to ${formatMoney(payerSum, currency)}, but the expense is ${formatMoney(totalAmount, currency)}. ${
+          diff > 0
+            ? `Still short ${formatMoney(diff, currency)}.`
+            : `Over by ${formatMoney(Math.abs(diff), currency)}.`
+        }`;
+      }
+    }
+
+    return null;
+  }, [
+    totalAmount,
+    splitMode,
+    splitSum,
+    multiPayer,
+    payerSum,
+    currency,
+  ]);
+
+  function ensureMemberValue(
+    map: Record<string, string>,
+    uid: string,
+    setter: (value: Record<string, string>) => void
+  ) {
+    if (map[uid] != null) return;
+    setter({ ...map, [uid]: "" });
+  }
 
   return (
     <Card className="mx-auto max-w-xl">
@@ -113,7 +251,8 @@ export function ExpenseForm({
               step="0.01"
               min="0.01"
               inputMode="decimal"
-              defaultValue={initialExpense?.amount}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               required
             />
           </div>
@@ -122,7 +261,8 @@ export function ExpenseForm({
             <Select
               id="currency"
               name="currency"
-              defaultValue={initialExpense?.currency ?? defaultCurrency}
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
             >
               {CURRENCIES.map((c) => (
                 <option key={c} value={c}>
@@ -176,11 +316,16 @@ export function ExpenseForm({
                   className="h-4 w-4 shrink-0"
                   checked={selected.includes(m.userId)}
                   onChange={(e) => {
-                    setSelected((prev) =>
-                      e.target.checked
-                        ? [...prev, m.userId]
-                        : prev.filter((id) => id !== m.userId)
-                    );
+                    setSelected((prev) => {
+                      if (e.target.checked) {
+                        ensureMemberValue(exactById, m.userId, setExactById);
+                        ensureMemberValue(percentById, m.userId, setPercentById);
+                        ensureMemberValue(sharesById, m.userId, setSharesById);
+                        ensureMemberValue(payerById, m.userId, setPayerById);
+                        return [...prev, m.userId];
+                      }
+                      return prev.filter((id) => id !== m.userId);
+                    });
                   }}
                 />
                 {m.name}
@@ -205,7 +350,7 @@ export function ExpenseForm({
         </div>
 
         {splitMode !== "EQUAL" && (
-          <div className="space-y-2 rounded-xl bg-bg p-3">
+          <div className="space-y-2 rounded-sm bg-bg p-3">
             {selected.map((uid) => {
               const name = members.find((m) => m.userId === uid)?.name ?? uid;
               const field =
@@ -214,13 +359,12 @@ export function ExpenseForm({
                   : splitMode === "PERCENTAGE"
                     ? `percent_${uid}`
                     : `shares_${uid}`;
-              const existing = splitById[uid];
-              const def =
+              const value =
                 splitMode === "EXACT"
-                  ? existing?.amount
+                  ? (exactById[uid] ?? "")
                   : splitMode === "PERCENTAGE"
-                    ? existing?.percent
-                    : existing?.shares;
+                    ? (percentById[uid] ?? "")
+                    : (sharesById[uid] ?? "");
               return (
                 <div
                   key={uid}
@@ -234,12 +378,34 @@ export function ExpenseForm({
                     type="number"
                     step="0.01"
                     inputMode="decimal"
-                    defaultValue={def ?? defaultSplitValues[uid]}
+                    value={value}
+                    aria-invalid={Boolean(clientError)}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      if (splitMode === "EXACT") {
+                        setExactById((prev) => ({ ...prev, [uid]: next }));
+                      } else if (splitMode === "PERCENTAGE") {
+                        setPercentById((prev) => ({ ...prev, [uid]: next }));
+                      } else {
+                        setSharesById((prev) => ({ ...prev, [uid]: next }));
+                      }
+                    }}
                     required
                   />
                 </div>
               );
             })}
+            {splitMode === "EXACT" && splitSum != null && totalAmount > 0 ? (
+              <p className="text-xs text-muted">
+                Split total {formatMoney(splitSum, currency)} of{" "}
+                {formatMoney(totalAmount, currency)}
+              </p>
+            ) : null}
+            {splitMode === "PERCENTAGE" && splitSum != null ? (
+              <p className="text-xs text-muted">
+                Percentages total {splitSum}% of 100%
+              </p>
+            ) : null}
           </div>
         )}
 
@@ -255,18 +421,16 @@ export function ExpenseForm({
         </label>
 
         {!multiPayer ? (
-          <div>
-            <Label htmlFor="payerId">Paid by</Label>
-            <Select id="payerId" name="payerId" defaultValue={defaultPayerId}>
-              {members.map((m) => (
-                <option key={m.userId} value={m.userId}>
-                  {m.name}
-                </option>
-              ))}
-            </Select>
-          </div>
+          <>
+            <input type="hidden" name="payerId" value={recordedPayerId} />
+            <p className="text-sm text-muted">
+              {editing
+                ? `Recorded as paid by ${recordedPayerName}.`
+                : "Recorded as paid by you. Others can add what they paid as separate expenses."}
+            </p>
+          </>
         ) : (
-          <div className="space-y-2 rounded-xl bg-bg p-3">
+          <div className="space-y-2 rounded-sm bg-bg p-3">
             {selected.map((uid) => {
               const name = members.find((m) => m.userId === uid)?.name ?? uid;
               return (
@@ -282,16 +446,29 @@ export function ExpenseForm({
                     type="number"
                     step="0.01"
                     inputMode="decimal"
-                    defaultValue={payerAmountById[uid] ?? 0}
+                    value={payerById[uid] ?? "0"}
+                    aria-invalid={Boolean(clientError)}
+                    onChange={(e) =>
+                      setPayerById((prev) => ({
+                        ...prev,
+                        [uid]: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               );
             })}
+            {payerSum != null && totalAmount > 0 ? (
+              <p className="text-xs text-muted">
+                Paid total {formatMoney(payerSum, currency)} of{" "}
+                {formatMoney(totalAmount, currency)}
+              </p>
+            ) : null}
           </div>
         )}
 
-        {state.error && <p className="text-sm text-danger">{state.error}</p>}
-        <Button type="submit" disabled={pending}>
+        <FormMessage error={clientError ?? state.error} />
+        <Button type="submit" disabled={pending || Boolean(clientError)}>
           {pending
             ? editing
               ? "Saving…"

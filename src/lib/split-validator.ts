@@ -56,7 +56,9 @@ export function computeSplits(
     });
     const sum = roundMoney(splits.reduce((a, s) => a + s.amount, 0));
     if (Math.abs(sum - total) > 0.01) {
-      throw new Error(`Exact splits (${sum}) must equal total (${total})`);
+      throw new Error(
+        `The shares add up to ${sum}, but the expense total is ${total}. They need to match.`
+      );
     }
     return splits;
   }
@@ -64,7 +66,9 @@ export function computeSplits(
   if (mode === "PERCENTAGE") {
     const percentSum = participants.reduce((a, p) => a + (p.percent ?? 0), 0);
     if (Math.abs(percentSum - 100) > 0.01) {
-      throw new Error("Percentages must sum to 100");
+      throw new Error(
+        `Percentages add up to ${roundMoney(percentSum)}%. They need to total 100%.`
+      );
     }
     const splits = participants.map((p) => ({
       userId: p.userId,
@@ -101,6 +105,8 @@ export function validatePayers(total: number, payers: PayerInput[]) {
   if (payers.length === 0) throw new Error("At least one payer is required");
   const sum = roundMoney(payers.reduce((a, p) => a + p.amount, 0));
   if (Math.abs(sum - total) > 0.01) {
-    throw new Error(`Payer amounts (${sum}) must equal total (${total})`);
+    throw new Error(
+      `Amounts paid add up to ${sum}, but the expense total is ${total}. They need to match.`
+    );
   }
 }
