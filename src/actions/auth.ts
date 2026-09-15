@@ -28,9 +28,43 @@ function credentialsFailed(error: unknown) {
   return type === "CredentialsSignin" || type === "CallbackRouteError";
 }
 
+function tooManyTries(retryAfterSec: number) {
+  if (retryAfterSec >= 60) {
+    const minutes = Math.ceil(retryAfterSec / 60);
+    return `Too many attempts. Please wait about ${minutes} minute${minutes === 1 ? "" : "s"}, then try again.`;
+  }
+  return `Too many attempts. Please wait ${retryAfterSec} seconds, then try again.`;
+}
+
+function registerValidationError(
+  issues: z.ZodIssue[]
+): string {
+  const paths = new Set(issues.map((i) => i.path[0]));
+  if (paths.has("email")) {
+    return "Please enter a valid email address.";
+  }
+  if (paths.has("password")) {
+    const passwordIssue = issues.find((i) => i.path[0] === "password");
+    if (passwordIssue?.code === "too_small") {
+      return "Password must be at least 10 characters.";
+    }
+    if (passwordIssue?.code === "too_big") {
+      return "Password must be at most 72 characters.";
+    }
+    return "Please choose a password between 10 and 72 characters.";
+  }
+  if (paths.has("name")) {
+    return "Please enter your name.";
+  }
+  return "Please check your details and try again.";
+}
+
 async function signInWithPassword(email: string, password: string) {
   if (!process.env.AUTH_SECRET) {
-    return { error: "Server is missing AUTH_SECRET. Add it in Vercel and redeploy." };
+    return {
+      error:
+        "Sign-in isn’t available right now. Please try again in a few minutes.",
+    };
   }
   try {
     const result = await signIn("credentials", {
@@ -39,13 +73,22 @@ async function signInWithPassword(email: string, password: string) {
       redirect: false,
     });
     if (result && typeof result === "object" && "error" in result && result.error) {
-      return { error: "Invalid email or password." };
+      return {
+        error:
+          "That email or password doesn’t match. Check both, or reset your password.",
+      };
     }
   } catch (error) {
     if (credentialsFailed(error)) {
-      return { error: "Invalid email or password." };
+      return {
+        error:
+          "That email or password doesn’t match. Check both, or reset your password.",
+      };
     }
-    throw error;
+    return {
+      error:
+        "We couldn’t sign you in just now. Please try again in a moment.",
+    };
   }
   return null;
 }
@@ -57,7 +100,7 @@ export async function registerAction(
   await migrate();
   const rate = await checkRateLimit(await clientKey("register"), 10);
   if (!rate.ok) {
-    return { error: `Too many attempts. Try again in ${rate.retryAfterSec}s.` };
+    return { error: tooManyTries(rate.retryAfterSec) };
   }
 
   const parsed = registerSchema.safeParse({
@@ -67,12 +110,17 @@ export async function registerAction(
     avatarId: formData.get("avatarId") ?? 1,
   });
   if (!parsed.success) {
-    return { error: "Name, valid email, and password (10–72 chars) are required." };
+    return { error: registerValidationError(parsed.error.issues) };
   }
 
   const { name, email, password, avatarId } = parsed.data;
   const existing = await db.select().from(users).where(eq(users.email, email)).get();
-  if (existing) return { error: "Unable to create account with that email." };
+  if (existing) {
+    return {
+      error:
+        "An account with this email already exists. Try logging in instead.",
+    };
+  }
 
   const passwordHash = await bcrypt.hash(password, 10);
   await db.insert(users).values({
@@ -87,7 +135,10 @@ export async function registerAction(
 
   const signInError = await signInWithPassword(email, password);
   if (signInError) {
-    return { error: "Account created, but sign-in failed. Try logging in." };
+    return {
+      error:
+        "Your account was created, but we couldn’t sign you in automatically. Please log in.",
+    };
   }
   redirect("/dashboard");
 }
@@ -98,11 +149,22 @@ export async function loginAction(
 ): Promise<ActionResult> {
   const rate = await checkRateLimit(await clientKey("login"), 20);
   if (!rate.ok) {
-    return { error: `Too many attempts. Try again in ${rate.retryAfterSec}s.` };
+    return { error: tooManyTries(rate.retryAfterSec) };
   }
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+
+  if (!email) {
+    return { error: "Enter the email for your account." };
+  }
+  if (!z.string().email().safeParse(email).success) {
+    return { error: "Please enter a valid email address." };
+  }
+  if (!password) {
+    return { error: "Enter your password." };
+  }
+
   const signInError = await signInWithPassword(email, password);
   if (signInError) return signInError;
   redirect(safeNextPath(formData.get("next")));
@@ -119,11 +181,19 @@ export async function requestPasswordResetAction(
   await migrate();
   const rate = await checkRateLimit(await clientKey("reset"), 5);
   if (!rate.ok) {
-    return { error: `Too many attempts. Try again in ${rate.retryAfterSec}s.` };
+    return { error: tooManyTries(rate.retryAfterSec) };
   }
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const generic = "If that email exists, a reset link was created.";
+  if (!email) {
+    return { error: "Enter the email for your account." };
+  }
+  if (!z.string().email().safeParse(email).success) {
+    return { error: "Please enter a valid email address." };
+  }
+
+  const generic =
+    "If an account exists for that email, we’ve sent a reset link. Check your inbox and spam folder.";
   const user = await db.select().from(users).where(eq(users.email, email)).get();
   if (!user) {
     return { success: generic };
@@ -147,12 +217,19 @@ export async function requestPasswordResetAction(
     console.log("[password-reset]", link);
   }
 
-  const { sendEmail } = await import("@/lib/email");
-  await sendEmail({
-    to: email,
-    subject: "Reset your password",
-    text: `Reset your password: ${link}`,
-  });
+  try {
+    const { sendEmail } = await import("@/lib/email");
+    await sendEmail({
+      to: email,
+      subject: "Reset your password",
+      text: `Reset your password: ${link}`,
+    });
+  } catch {
+    return {
+      error:
+        "We couldn’t send the reset email just now. Please try again in a moment.",
+    };
+  }
 
   return { success: generic };
 }
@@ -164,9 +241,14 @@ export async function resetPasswordAction(
   await migrate();
   const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");
+  if (!token) {
+    return {
+      error: "This reset link is missing or incomplete. Request a new one.",
+    };
+  }
   const passwordError = validatePassword(password);
-  if (!token || passwordError) {
-    return { error: passwordError ?? "Valid token and password required." };
+  if (passwordError) {
+    return { error: passwordError };
   }
 
   const row = await db
@@ -175,7 +257,10 @@ export async function resetPasswordAction(
     .where(eq(passwordResetTokens.token, token))
     .get();
   if (!row || row.expiresAt.getTime() < Date.now()) {
-    return { error: "Invalid or expired token." };
+    return {
+      error:
+        "This reset link is invalid or has expired. Request a new one and try again.",
+    };
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -187,7 +272,9 @@ export async function resetPasswordAction(
     .delete(passwordResetTokens)
     .where(eq(passwordResetTokens.userId, row.userId));
 
-  return { success: "Password updated. You can log in now." };
+  return {
+    success: "Password updated. You can log in with your new password.",
+  };
 }
 
 export { safeNextPath };

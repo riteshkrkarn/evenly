@@ -6,6 +6,7 @@ import { registerAction, type ActionResult } from "@/actions/auth";
 import { AvatarPicker } from "@/components/avatar-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
@@ -53,13 +54,12 @@ export default function RegisterPage() {
               autoComplete="new-password"
               required
             />
+            <p className="mt-1.5 text-xs text-muted">
+              Use at least 10 characters.
+            </p>
           </div>
           <AvatarPicker value={avatarId} onChange={setAvatarId} />
-          {state.error && (
-            <p className="text-sm text-danger" role="alert">
-              {state.error}
-            </p>
-          )}
+          {state.error && <FormMessage error={state.error} />}
           <Button type="submit" className="w-full" disabled={pending}>
             {pending ? "Creating…" : "Create account"}
           </Button>

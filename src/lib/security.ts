@@ -66,7 +66,12 @@ export function safeNextPath(
 }
 
 export function validatePassword(password: string): string | null {
-  if (password.length < 10) return "Password must be at least 10 characters.";
-  if (password.length > 72) return "Password must be at most 72 characters.";
+  if (!password) return "Enter a new password.";
+  if (password.length < 10) {
+    return "Password must be at least 10 characters.";
+  }
+  if (password.length > 72) {
+    return "Password must be at most 72 characters.";
+  }
   return null;
 }

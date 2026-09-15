@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { loginAction, type ActionResult } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
@@ -43,11 +44,7 @@ function LoginForm() {
               required
             />
           </div>
-          {state.error && (
-            <p className="text-sm text-danger" role="alert">
-              {state.error}
-            </p>
-          )}
+          {state.error && <FormMessage error={state.error} />}
           <Button type="submit" className="w-full" disabled={pending}>
             {pending ? "Signing in…" : "Sign in"}
           </Button>
@@ -58,8 +55,8 @@ function LoginForm() {
             Register
           </Link>
           {" · "}
-          <Link className="font-semibold text-accent" href="/reset-password">
-            Reset password
+          <Link className="font-semibold text-primary" href="/reset-password">
+            Forgot password?
           </Link>
         </p>
       </Card>
