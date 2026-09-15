@@ -43,30 +43,3 @@ More detail: [`PRODUCT.md`](PRODUCT.md) · design system: [`DESIGN.md`](DESIGN.m
 | Auth | Auth.js — email + password, JWT sessions |
 | Data | Drizzle ORM + libSQL (Turso) |
 | UI | Archivo + Azeret Mono, light & dark themes, INR-first money |
-
-## Production (Vercel + Turso)
-
-1. Create a Turso database; copy URL and token  
-2. Import this repo into Vercel  
-3. Set env vars for **Production** and **Preview**, then deploy:
-
-| Variable | Purpose |
-|---|---|
-| `TURSO_DATABASE_URL` | `libsql://….turso.io` |
-| `TURSO_AUTH_TOKEN` | Turso auth token |
-| `AUTH_SECRET` | `openssl rand -base64 32` |
-| `AUTH_URL` | `https://your-app.vercel.app` |
-| `APP_URL` | Same as `AUTH_URL` |
-| `RESEND_API_KEY` | Optional until email is enabled |
-| `EMAIL_FROM` | e.g. `Evenly <onboarding@resend.dev>` |
-| `CRON_SECRET` | Secret for the monthly reminder cron |
-
-4. If `AUTH_URL` / `APP_URL` were empty on first deploy, set them and **redeploy**
-
-Schema migrates on first request.
-
-Prefer Vercel Functions region **`bom1`** (Mumbai) when the Turso DB is in `aws-ap-south-1`.
-
-Push to `main` (or deploy that commit) for new releases. Redeploying an old Vercel deployment rebuilds that old commit, not latest `main`.
-
-Monthly amount-due emails need `RESEND_API_KEY` and a verified `EMAIL_FROM`. Vercel Cron calls `/api/cron/monthly-reminders` on the 1st with `Authorization: Bearer $CRON_SECRET`.
