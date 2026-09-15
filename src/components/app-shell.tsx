@@ -68,15 +68,16 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh bg-bg text-ink">
       <header
-        className="sticky top-0 z-30 border-b border-border bg-bg/95 backdrop-blur-md"
+        className="sticky top-0 z-30 border-b border-border bg-surface"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2.5 sm:gap-3 sm:py-3">
           <Link
             href="/dashboard"
-            className="shrink-0 text-lg font-bold tracking-tight text-primary"
+            className="shrink-0 text-lg font-extrabold tracking-tight text-ink"
           >
-            Splitwise
+            Evenly
+            <span className="mt-0.5 block h-0.5 w-8 bg-primary" aria-hidden />
           </Link>
 
           <nav
@@ -87,7 +88,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors duration-150 hover:bg-surface hover:text-ink"
+                className="rounded-sm px-3 py-2 text-sm font-medium text-muted transition-colors duration-150 hover:bg-bg hover:text-ink"
               >
                 {item.label}
               </Link>

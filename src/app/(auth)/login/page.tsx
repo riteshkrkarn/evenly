@@ -20,8 +20,11 @@ function LoginForm() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-bg px-4 py-8" style={{ paddingTop: "max(2rem, env(safe-area-inset-top))", paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}>
       <Card className="w-full max-w-md">
-        <p className="text-sm font-semibold text-primary">Splitwise</p>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight">Log in</h1>
+        <p className="text-xl font-extrabold tracking-tight text-ink">
+          Evenly
+          <span className="mt-1.5 block h-0.5 w-10 bg-primary" aria-hidden />
+        </p>
+        <h1 className="mt-4 text-2xl font-bold tracking-tight">Log in</h1>
         <p className="mt-1 text-sm text-muted">
           Pick up where you left your group balances.
         </p>

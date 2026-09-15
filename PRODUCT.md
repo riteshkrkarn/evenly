@@ -10,7 +10,7 @@ Young adults in informal groups — roommates, friends, classmates, trip crews, 
 
 ## Product Purpose
 
-Splitwise Clone helps small groups (up to 5) track shared expenses, balances, and settlements accurately. Success is: anyone in the group can answer “who owes what?” in seconds, without arguing about the math or worrying that balances are wrong.
+Evenly helps small groups (up to 5) track shared expenses, balances, and settlements accurately. Success is: anyone in the group can answer “who owes what?” in seconds, without arguing about the math or worrying that balances are wrong.
 
 ## Brand Personality
 

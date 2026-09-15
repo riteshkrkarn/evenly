@@ -8,7 +8,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-surface p-4 shadow-[0_1px_2px_var(--shadow)] sm:p-5",
+        "rounded-sm border border-border bg-surface p-4 sm:p-5",
         className
       )}
       {...props}
@@ -54,7 +54,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-2xl border border-dashed border-border bg-bg px-5 py-8">
+    <div className="flex flex-col items-start gap-3 rounded-sm border border-dashed border-border bg-bg px-5 py-8">
       <div>
         <p className="font-semibold text-ink">{title}</p>
         <p className="mt-1 max-w-md text-sm text-muted">{description}</p>
@@ -71,7 +71,7 @@ export function Select({
   return (
     <select
       className={cn(
-        "h-11 min-h-11 w-full rounded-xl border border-border bg-bg px-3 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-ring/25",
+        "h-11 min-h-11 w-full rounded-sm border border-border bg-bg px-3 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-ring/25",
         className
       )}
       {...props}

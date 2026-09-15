@@ -18,7 +18,7 @@ export function TransferList({
   }
 
   return (
-    <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+    <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border">
       {transfers.map((t) => (
         <li key={t.id} className="bg-bg px-4 py-3">
           <div className="flex items-start justify-between gap-3">

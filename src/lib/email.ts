@@ -33,7 +33,7 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM?.trim() || "Splitwise <onboarding@resend.dev>",
+        from: process.env.EMAIL_FROM?.trim() || "Evenly <onboarding@resend.dev>",
         to: input.to,
         subject: input.subject,
         text: input.text,

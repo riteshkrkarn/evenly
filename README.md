@@ -1,4 +1,4 @@
-# Splitwise
+# Evenly
 
 A small-group expense splitter for roommates, friends, and trips. Anyone in a group should be able to answer **who owes what** in a few seconds — without arguing about the math.
 
@@ -9,7 +9,7 @@ Web only. Groups are capped at **5 members**. Settlements are recorded in-app (A
 - **Next.js 16** (App Router) + TypeScript + Tailwind v4
 - **Auth.js** (email + password, JWT sessions)
 - **Drizzle ORM** + **libSQL**
-  - Local: SQLite file at `data/splitwise.db`
+  - Local: SQLite file at `data/evenly.db`
   - Production (Vercel): **Turso**
 - Dark / light theme, DM Sans, INR-first money formatting
 
@@ -68,7 +68,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Without Turso env vars, the app uses `data/splitwise.db` (gitignored).
+Without Turso env vars, the app uses `data/evenly.db` (gitignored).
 
 ### Demo accounts
 
@@ -83,7 +83,7 @@ Optional `.env.local`:
 AUTH_SECRET=a-long-random-string
 APP_URL=http://localhost:3000
 RESEND_API_KEY=
-EMAIL_FROM=Splitwise <onboarding@resend.dev>
+EMAIL_FROM=Evenly <onboarding@resend.dev>
 CRON_SECRET=a-long-random-string
 ```
 
@@ -107,7 +107,7 @@ Local SQLite cannot persist on Vercel. Use Turso.
 | `AUTH_URL` | `https://your-app.vercel.app` |
 | `APP_URL` | Same as `AUTH_URL` |
 | `RESEND_API_KEY` | Resend API key (optional until you use email) |
-| `EMAIL_FROM` | e.g. `Splitwise <onboarding@resend.dev>` |
+| `EMAIL_FROM` | e.g. `Evenly <onboarding@resend.dev>` |
 | `CRON_SECRET` | Random string for monthly reminder cron |
 
 4. After the first deploy, set `AUTH_URL` / `APP_URL` if they were blank and **redeploy**.

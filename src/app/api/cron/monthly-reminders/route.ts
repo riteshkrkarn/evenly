@@ -80,7 +80,7 @@ export async function GET(req: Request) {
       "",
       ...lines,
       "",
-      `Open Splitwise: ${appUrl}/dashboard`,
+      `Open Evenly: ${appUrl}/dashboard`,
       "",
       "You can turn these emails off in Profile settings.",
     ].join("\n");

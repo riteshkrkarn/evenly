@@ -2,57 +2,56 @@
 
 ## Visual Theme
 
-Quiet ledger desk — precise ink on pure white, a rose seal for primary actions, cool slate for secondary state. Restrained product strategy: surfaces stay neutral; trust comes from typography, spacing, and accurate money presentation.
+Timetable Board — Swiss public-information design for Evenly. Cool paper ground, near-black ink, signal-red for primary actions and “owed to you.” Enamel panels, hairline rules, tabular amounts. Light and dark both ship. Numbers first; chrome stays quiet.
 
 ## Color
 
-All tokens in OKLCH. Light default; dark via `.dark`.
+OKLCH tokens. Light default; dark via `.dark`.
 
 | Role | Light | Dark | Use |
 |---|---|---|---|
-| bg | `oklch(1 0 0)` | `oklch(0.12 0 0)` | App canvas |
-| surface | `oklch(0.985 0.004 357)` | `oklch(0.18 0.01 357)` | Panels, sheets |
-| ink | `oklch(0.22 0.02 357)` | `oklch(0.95 0.01 357)` | Body / titles |
-| muted | `oklch(0.48 0.015 357)` | `oklch(0.68 0.01 357)` | Secondary text |
-| primary | `oklch(0.48 0.17 357)` | `oklch(0.68 0.15 357)` | CTAs, focus, brand mark |
-| accent | `oklch(0.42 0.09 230)` | `oklch(0.72 0.08 230)` | Links, info, owed-you |
-| danger | `oklch(0.50 0.18 25)` | `oklch(0.68 0.16 25)` | You owe / destructive |
-| border | `oklch(0.90 0.01 357)` | `oklch(0.28 0.01 357)` | Hairlines |
-| ring | primary | primary | Focus |
+| bg | `oklch(0.975 0.002 250)` | `oklch(0.14 0.01 250)` | App canvas |
+| surface | `oklch(1 0 0)` | `oklch(0.18 0.012 250)` | Rails, panels |
+| ink | `oklch(0.18 0.01 250)` | `oklch(0.96 0.005 250)` | Body / titles |
+| muted | `oklch(0.52 0.015 250)` | `oklch(0.68 0.015 250)` | Secondary text |
+| primary | `oklch(0.55 0.22 25)` | `oklch(0.62 0.2 25)` | CTAs, brand rule, owed |
+| accent | same as primary | same as primary | Owed-to-you / links |
+| danger | `oklch(0.42 0.06 250)` | `oklch(0.72 0.04 250)` | You owe (cool steel, not alarm red) |
+| border | `oklch(0.88 0.008 250)` | `oklch(0.28 0.012 250)` | Hairlines |
+| owed-wash | primary @ 8% | primary @ 14% | Featured balance row |
 
-Text on primary / danger fills: near-white.
+Text on primary fills: near-white.
 
-Semantic money:
-- **owed to you** → accent
-- **you owe** → danger  
-- **settled** → muted
+Semantic money: **owed to you** → accent/primary + label; **you owe** → danger + label; **settled** → muted.
 
 ## Typography
 
-Single family: **DM Sans** (product register — one well-tuned sans).
+- **Archivo** — UI and display (wide black for brand)
+- **Azeret Mono** — money amounts (`tabular-nums`)
 
-Scale (rem, ~1.2 ratio):
-- xs 0.75 / sm 0.875 / base 1 / lg 1.125 / xl 1.25 / 2xl 1.5 / 3xl 1.875
-
-Money amounts: `font-variant-numeric: tabular-nums`, semibold.
+Scale: label-caps ~0.6875rem / 0.14em tracking; body 0.875–1rem; brand ~3rem extrabold.
 
 ## Components
 
-- Radius: controls `0.75rem`, panels `1rem`
-- Buttons: solid primary, quiet secondary, ghost icon tools
+- Radius: `0.25rem` (sm) — transit panels, not soft SaaS pills
+- Buttons: solid signal-red primary; quiet secondary borders
 - Forms: 44px min height, visible focus ring
-- Lists over card grids when possible; cards only for group tiles / interactive containers
-- Empty states teach the next action
+- Lists / tables over card grids; cards only for interactive containers
+- Brand mark: word + short signal-red underline rule
 
 ## Layout
 
-- Max content width: 64rem
-- Page padding: 1rem → 1.5rem
-- Section gap: 1.5–2rem
-- Sticky top nav; no decorative gradients behind the product chrome
+- Landing: ~32% wayfinding rail / ~68% live balance board
+- App: sticky top nav, max content ~64rem
+- Page padding: 1–1.5rem → denser on board tables
+- Module snap: whole sections, not fractional card crumbs
 
 ## Motion
 
-- 150–200ms ease-out for hover/focus/open
-- `prefers-reduced-motion: reduce` → instant or opacity-only
-- No page-load choreography
+- 150ms ease-out hover/focus
+- Settlement signature (future): staged board-row clear, not toast
+- `prefers-reduced-motion: reduce` respected
+
+## Imagery
+
+No hero illustration. The balance board is the proof. Demo data labeled synthetic.

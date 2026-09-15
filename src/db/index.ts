@@ -24,7 +24,7 @@ function resolveUrl() {
     );
   }
 
-  return url || "file:./data/splitwise.db";
+  return url || "file:./data/evenly.db";
 }
 
 const url = resolveUrl();

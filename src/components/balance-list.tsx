@@ -137,7 +137,7 @@ export function BalanceList({
                 You only see your own pairs. Pay part when you owe — leftover
                 stays.
               </p>
-              <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+              <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border">
                 {pairs.length === 0 && (
                   <li className="px-3 py-3 text-sm text-muted">
                     Everyone is even.
