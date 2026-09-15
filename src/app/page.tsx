@@ -39,14 +39,14 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-dvh bg-bg text-ink">
-      <div className="mx-auto flex min-h-dvh max-w-[80rem] flex-col md:flex-row">
+      <div className="mx-auto flex min-h-dvh max-w-7xl flex-col md:flex-row">
         <aside className="flex w-full shrink-0 flex-col justify-between gap-10 border-b border-border bg-surface px-8 py-10 md:w-[32%] md:border-b-0 md:border-r lg:px-10">
           <div>
             <p className="text-[3rem] font-extrabold leading-none tracking-tight text-ink">
               Evenly
             </p>
             <span aria-hidden className="mt-3 block h-1 w-14 bg-primary" />
-            <p className="mt-8 max-w-[15rem] text-[1.5rem] font-medium leading-snug text-ink">
+            <p className="mt-8 max-w-60 text-[1.5rem] font-medium leading-snug text-ink">
               Split shared costs.
               <br />
               Trust the numbers.
@@ -78,7 +78,7 @@ export default async function HomePage() {
           <div>
             <Link
               href="/register"
-              className="flex h-[3.75rem] w-full items-center justify-center bg-primary text-sm font-semibold text-primary-fg transition-[filter] duration-150 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex h-15 w-full items-center justify-center bg-primary text-sm font-semibold text-primary-fg transition-[filter] duration-150 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Create account
             </Link>
@@ -115,7 +115,7 @@ export default async function HomePage() {
                   key={row.name}
                   className={
                     row.featured
-                      ? "border-b border-border border-l-[3px] border-l-primary bg-[var(--owed-wash)]"
+                      ? "border-b border-border border-l-[3px] border-l-primary bg-(--owed-wash)"
                       : "border-b border-border"
                   }
                 >
