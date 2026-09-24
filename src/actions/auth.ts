@@ -217,14 +217,21 @@ export async function requestPasswordResetAction(
     console.log("[password-reset]", link);
   }
 
-  try {
-    const { sendEmail } = await import("@/lib/email");
-    await sendEmail({
-      to: email,
-      subject: "Reset your password",
-      text: `Reset your password: ${link}`,
-    });
-  } catch {
+  const { sendEmail, isEmailConfigured } = await import("@/lib/email");
+  if (!isEmailConfigured()) {
+    return {
+      error:
+        "Password reset email isn’t configured yet. Add RESEND_API_KEY to your environment.",
+    };
+  }
+
+  const sent = await sendEmail({
+    to: email,
+    subject: "Reset your Evenly password",
+    text: `Reset your password with this link (expires in 1 hour):\n\n${link}\n\nIf you didn’t request this, you can ignore this email.`,
+    html: `<p>Reset your password with this link (expires in 1 hour):</p><p><a href="${link}">${link}</a></p><p>If you didn’t request this, you can ignore this email.</p>`,
+  });
+  if (!sent) {
     return {
       error:
         "We couldn’t send the reset email just now. Please try again in a moment.",
