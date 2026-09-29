@@ -212,12 +212,14 @@ export async function requestPasswordResetAction(
     createdAt: new Date(),
   });
 
-  const link = `${process.env.APP_URL ?? "http://localhost:3000"}/reset-password?token=${token}`;
+  const { sendEmail, isEmailConfigured, appOrigin } = await import(
+    "@/lib/email"
+  );
+  const link = `${appOrigin()}/reset-password?token=${token}`;
   if (process.env.NODE_ENV !== "production") {
     console.log("[password-reset]", link);
   }
 
-  const { sendEmail, isEmailConfigured } = await import("@/lib/email");
   if (!isEmailConfigured()) {
     return {
       error:
@@ -231,9 +233,10 @@ export async function requestPasswordResetAction(
     text: `Reset your password with this link (expires in 1 hour):\n\n${link}\n\nIf you didn’t request this, you can ignore this email.`,
     html: `<p>Reset your password with this link (expires in 1 hour):</p><p><a href="${link}">${link}</a></p><p>If you didn’t request this, you can ignore this email.</p>`,
   });
-  if (!sent) {
+  if (!sent.ok) {
     return {
       error:
+        sent.error ??
         "We couldn’t send the reset email just now. Please try again in a moment.",
     };
   }

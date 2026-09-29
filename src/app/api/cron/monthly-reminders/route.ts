@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { migrate } from "@/db/ensure-migrated";
 import { groupMembers, groups, users } from "@/db/schema";
 import { getGroupBalances, getGroupMembers } from "@/lib/group-data";
-import { sendEmail } from "@/lib/email";
+import { appOrigin, sendEmail } from "@/lib/email";
 import { formatMoney } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -72,7 +72,6 @@ export async function GET(req: Request) {
       continue;
     }
 
-    const appUrl = process.env.APP_URL ?? "http://localhost:3000";
     const text = [
       `Hi ${user.name},`,
       "",
@@ -80,17 +79,17 @@ export async function GET(req: Request) {
       "",
       ...lines,
       "",
-      `Open Evenly: ${appUrl}/dashboard`,
+      `Open Evenly: ${appOrigin()}/dashboard`,
       "",
       "You can turn these emails off in Profile settings.",
     ].join("\n");
 
-    const ok = await sendEmail({
+    const result = await sendEmail({
       to: user.email,
       subject: "Your monthly amount due",
       text,
     });
-    if (ok) sent += 1;
+    if (result.ok) sent += 1;
     else skipped += 1;
   }
 
